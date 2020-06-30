@@ -35,28 +35,30 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    Chip8 chip8 = Chip8();          // Initialise Chip8
+    // Initialise Chip8
+    Chip8 chip8 = Chip8();          
 
-    int w = 1024;                   // Window width
-    int h = 512;                    // Window height
+    // Window width and height
+    int w = 1024;
+    int h = 512;
 
-    // The window we'll be rendering to
+    // SDL window
     SDL_Window* window = NULL;
 
     // Initialize SDL
-    if ( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
         exit(1);
     }
+
     // Create window
     window = SDL_CreateWindow(
             "CHIP-8 Emulator",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             w, h, SDL_WINDOW_SHOWN
     );
-    if (window == NULL){
-        printf( "Window could not be created! SDL_Error: %s\n",
-                SDL_GetError() );
+    if (window == NULL) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         exit(2);
     }
 
@@ -73,11 +75,11 @@ int main(int argc, char **argv) {
     // Temporary pixel buffer
     uint32_t pixels[2048];
 
-
     load:
     // Attempt to load ROM
-    if (!chip8.loadGame(argv[1]))
+    if (!chip8.loadGame(argv[1])) {
         return 2;
+    }
 
     // Emulation loop
     while (true) {
@@ -90,12 +92,13 @@ int main(int argc, char **argv) {
 
             // Process keydown events
             if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.sym == SDLK_ESCAPE)
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
                     exit(0);
+                }
 
-                if (e.key.keysym.sym == SDLK_F1)
-                    goto load;      // *gasp*, a goto statement!
-                                    // Used to reset/reload ROM
+                if (e.key.keysym.sym == SDLK_F1) {
+                    goto load;
+                }
 
                 for (int i = 0; i < 16; ++i) {
                     if (e.key.keysym.sym == keymap[i]) {
@@ -132,6 +135,5 @@ int main(int argc, char **argv) {
 
         // Sleep to slow down emulation speed
         std::this_thread::sleep_for(std::chrono::microseconds(1200));
-
     }
 }

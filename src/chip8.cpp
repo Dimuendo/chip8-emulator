@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <random>
 #include <iostream>
 #include "chip8.h"
@@ -66,7 +67,7 @@ void Chip8::initialize() {
 }
 
 void Chip8::clearDisplay() {
-    for (int i = 0; i < 64 * 32; i++) {
+    for (int i = 0; i < (64 * 32); i++) {
         gfx[i] = 0;
     }
 }
@@ -109,8 +110,7 @@ bool Chip8::loadGame(const char *file_path) {
             // Load into memory - start at 0x200 (0x200 == 512)
             memory[i + 512] = (uint8_t)romBuffer[i];
         }
-    }
-    else {
+    } else {
         std::cerr << "ROM too large to fit in memory" << std::endl;
         return false;
     }
@@ -125,7 +125,7 @@ bool Chip8::loadGame(const char *file_path) {
 void Chip8::emulateCycle() {
     // Fetch Opcode - opcodes are two bytes long, each memory address 
     //   contains one byte, merge two bytes to get the opcode
-    unsigned short opcode = memory[pc] << 8 | memory[pc + 1]; // left shift and merge with bitwise OR
+    opcode = memory[pc] << 8 | memory[pc + 1]; // left shift and merge with bitwise OR
 
     // Decode Opcode
     switch(opcode & 0xF000) {
@@ -165,7 +165,7 @@ void Chip8::emulateCycle() {
 
         case 0x3000: //3XNN
             // Skips the next instruction if VX equals NN
-            if (V[((opcode & 0x0F00) >> 8)] == (opcode & 0x00FF)) {
+            if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
                 pc += 2;
             }
             pc += 2;
@@ -173,7 +173,7 @@ void Chip8::emulateCycle() {
 
         case 0x4000:  // 4XNN
             // Skips the next instruction if VX does not equal NN
-            if (V[((opcode & 0x0F00) >> 8)] != (opcode & 0x00FF)) {
+            if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
                 pc += 2;
             }
             pc += 2;
@@ -181,7 +181,7 @@ void Chip8::emulateCycle() {
 
         case 0x5000: // 5XY0
             // Skips the next instruction if VX equals VY
-            if (V[((opcode & 0x0F00) >> 8)] == V[((opcode & 0x00F0) >> 4)]) {
+            if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4]) {
                 pc += 2;
             }
             pc += 2;
@@ -189,13 +189,13 @@ void Chip8::emulateCycle() {
 
         case 0x6000: // 6XNN
             // Sets VX to NN
-            V[((opcode & 0x0F00) >> 8)] = opcode & 0x00FF;
+            V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
             pc += 2;
             break;
 
         case 0x7000: // 7XNN
             // Adds NN to VX (Carry flag is not changed)
-            V[((opcode & 0x0F00) >> 8)] += opcode & 0x00FF;
+            V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             pc += 2;
             break;
 
@@ -203,25 +203,25 @@ void Chip8::emulateCycle() {
             switch (opcode & 0x000F) {
                 case 0x0000: // 8XY0
                     // Sets VX to the value of VY
-                    V[((opcode & 0x0F00) >> 8)] = V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
                 case 0x0001: // 8XY1
                     // Sets VX to VX OR VY
-                    V[((opcode & 0x0F00) >> 8)] |= V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
                 case 0x0002: // 8XY2
                     // Sets VX to VX AND VY
-                    V[((opcode & 0x0F00) >> 8)] &= V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
                 case 0x0003: // 8XY3
                     // Sets VX to VX XOR VY
-                    V[((opcode & 0x0F00) >> 8)] ^= V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
@@ -232,43 +232,43 @@ void Chip8::emulateCycle() {
                     } else {
                         V[0xF] = 0;
                     }
-                    V[((opcode & 0x0F00) >> 8)] += V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
                 case 0x0005: // 8XY5
                     // VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    if (V[((opcode & 0x0F00) >> 8)] >= V[((opcode & 0x00F0) >> 4)]) {
+                    if (V[(opcode & 0x0F00) >> 8] >= V[(opcode & 0x00F0) >> 4]) {
                         V[0xF] = 1;
                     } else {
                         V[0xF] = 0; // Borrow
                     }
-                    V[((opcode & 0x0F00) >> 8)] -= V[((opcode & 0x00F0) >> 4)];
+                    V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
                     pc += 2;
                     break;
 
                 case 0x0006: // 8XY6
                     // Stores the least significant bit of VX in VF and then shifts VX to the right by 1
-                    V[0xF] = (V[((opcode & 0x0F00) >> 8)] & 0x1);
-                    V[((opcode & 0x0F00) >> 8)] >>= 1;
+                    V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
+                    V[(opcode & 0x0F00) >> 8] >>= 1;
                     pc += 2;
                     break;
 
                 case 0x0007: // 8XY7
                     // Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    if (V[((opcode & 0x00F0) >> 4)] >= V[((opcode & 0x0F00) >> 8)]) {
+                    if (V[(opcode & 0x00F0) >> 4] >= V[(opcode & 0x0F00) >> 8]) {
                         V[0xF] = 1;
                     } else {
                         V[0xF] = 0; // Borrow
                     }
-                    V[((opcode & 0x0F00) >> 8)] = V[((opcode & 0x00F0) >> 4)] - V[((opcode & 0x0F00) >> 8)];
+                    V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
                     pc += 2;
                     break;
 
                 case 0x000E: // 8XYE
                     // Stores the most significant bit of VX in VF and then shifts VX to the left by 1
-                    V[0xF] = (V[((opcode & 0x0F00) >> 8)] & 0x1);
-                    V[((opcode & 0x0F00) >> 8)] <<= 1;
+                    V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
+                    V[(opcode & 0x0F00) >> 8] <<= 1;
                     pc += 2;
                     break;
 
@@ -375,7 +375,7 @@ void Chip8::emulateCycle() {
                         }
                     }
 
-                    // No key is pressed - return
+                    // No key is pressed => return
                     if (!keyPressed) return;
 
                     pc += 2;
@@ -395,7 +395,12 @@ void Chip8::emulateCycle() {
                     break;
 
                 case 0x001E: // FX1E
-                    // Adds VX to I. VF is not affected
+                    // Adds VX to I
+                    if (I + V[(opcode & 0x0F00) >> 8] > 0xFFF){
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
                     I += V[(opcode & 0x0F00) >> 8];
                     pc += 2;
                     break;
@@ -419,19 +424,21 @@ void Chip8::emulateCycle() {
 
                 case 0x0055: // FX55
                     // Stores V0 to VX (including VX) in memory starting at address I
-                    // The offset from I is increased by 1 for each value written, but I itself is left unmodified
+                    // The offset from I is increased by 1 for each value written
                     for (int i = 0; i <= V[(opcode & 0x0F00) >> 8]; i++) {
                         memory[I + i] = V[i];
                     }
+                    I += ((opcode & 0x0F00) >> 8) + 1;
                     pc += 2;
                     break;
 
                 case 0x0065: // FX65
                     // Fills V0 to VX (including VX) with values from memory starting at address I
-                    // The offset from I is increased by 1 for each value written, but I itself is left unmodified
+                    // The offset from I is increased by 1 for each value written
                     for (int i = 0; i <= V[(opcode & 0x0F00) >> 8]; i++) {
                         V[i] = memory[I + i];
                     }
+                    I += ((opcode & 0x0F00) >> 8) + 1;
                     pc += 2;
                     break;
 
