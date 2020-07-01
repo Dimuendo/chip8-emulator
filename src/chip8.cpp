@@ -158,7 +158,7 @@ void Chip8::emulateCycle() {
 
         case 0x2000: // 2NNN
             // Calls subroutine at NNN
-            stack[sp] - pc;
+            stack[sp] = pc;
             ++sp;
             pc = opcode & 0x0FFF;
             break;
@@ -294,7 +294,7 @@ void Chip8::emulateCycle() {
 
         case 0xB000: // BNNN
             // Jumps to the address NNN plus V0
-            pc = V[0x0] + opcode & 0x0FFF;
+            pc = V[0x0] + (opcode & 0x0FFF);
             break;
 
         case 0xC000: // CXNN
@@ -304,6 +304,7 @@ void Chip8::emulateCycle() {
             break;
 
         case 0xD000: // DXYN
+        {
             // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. 
             // Each row of 8 pixels is read as bit-coded starting from memory location I
             // I value doesn’t change after the execution of this instruction. 
@@ -327,6 +328,7 @@ void Chip8::emulateCycle() {
             }
             drawFlag = true;
             pc += 2;
+        }
             break;
 
         case 0xE000: // E***
@@ -362,6 +364,7 @@ void Chip8::emulateCycle() {
                     break;
 
                 case 0x000A: // FX0A
+                {
                     // A key press is awaited, and then stored in VX
                     bool keyPressed = false;
 
@@ -376,6 +379,7 @@ void Chip8::emulateCycle() {
                     if (!keyPressed) return;
 
                     pc += 2;
+                }
                     break;
 
                 case 0x0015: // FX15

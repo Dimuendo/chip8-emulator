@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+const unsigned int VIDEO_HEIGHT = 32;
+const unsigned int VIDEO_WIDTH = 64;
+
 class Chip8 {
     private:
         // Chip 8 has 35 opcodes that are 2 bytes long
@@ -31,7 +34,7 @@ class Chip8 {
 
     public:
         // Pixel graphics stored in 64x32 screen, 1 if pixel is drawn
-        uint8_t gfx[64 * 32];
+        uint8_t gfx[VIDEO_HEIGHT * VIDEO_WIDTH];
 
         // Chip 8 has a HEX based keypad
         uint8_t key[16];
